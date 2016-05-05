@@ -331,6 +331,9 @@ abstract class AphrontBaseMySQLDatabaseConnection
   protected function throwConnectionException($errno, $error, $user, $host) {
     $this->throwCommonException($errno, $error);
 
+    throw new Exception("Fehler beim Verbindungsaufbau... einfach ignorieren oder die Seite neuladen.  Wird bald gefixt.");
+
+    /*
     $message = pht(
       'Attempt to connect to %s@%s failed with error #%d: %s.',
       $user,
@@ -339,6 +342,7 @@ abstract class AphrontBaseMySQLDatabaseConnection
       $error);
 
     throw new AphrontConnectionQueryException($message, $errno);
+    */
   }
 
 
