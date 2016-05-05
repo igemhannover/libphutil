@@ -59,17 +59,33 @@ final class AphrontMySQLiDatabaseConnection
       $conn->options(MYSQLI_OPT_CONNECT_TIMEOUT, $timeout);
     }
 
-    @$conn->real_connect(
-      $host,
-      $user,
-      $pass,
-      $database,
-      $port);
+    /* Kill sleeping MySQL processes if there is none free */
+    for ($i = 0; $i < 10; $i++) {
+      @$conn->real_connect(
+        $host,
+        $user,
+        $pass,
+        $database,
+        $port);
 
-    $errno = $conn->connect_errno;
-    if ($errno) {
-      $error = $conn->connect_error;
-      $this->throwConnectionException($errno, $error, $user, $host);
+      /* Never, I repeat, NEVER use this in a production system.
+         It's utterly stupid, can lead to data loss and universe implosions */
+      $errno = $conn->connect_errno;
+      if ($errno == 1226) {
+        $result = mysql_query("SHOW processlist");
+        while ($myrow = mysql_fetch_assoc($result)) {
+          if ($myrow['Command'] == "Sleep") {
+            mysql_query("KILL {$myrow['Id']}");
+            break;
+          }
+        }
+        continue;
+      }
+      if ($errno) {
+        $error = $conn->connect_error;
+        $this->throwConnectionException($errno, $error, $user, $host);
+        break;
+      }
     }
 
     $ok = @$conn->set_charset('utf8mb4');
