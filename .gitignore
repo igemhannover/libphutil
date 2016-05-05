@@ -34,3 +34,6 @@
 # User extensions
 /externals/includes/*
 /src/extensions/*
+/.settings/
+/.buildpath
+/.project
