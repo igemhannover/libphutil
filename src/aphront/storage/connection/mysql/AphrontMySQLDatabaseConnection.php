@@ -69,11 +69,32 @@ final class AphrontMySQLDatabaseConnection
       if ($timeout) {
         ini_set($timeout_ini, $old_timeout);
       }
-      throw $ex;
+      /*throw $ex;*/
     }
 
     if ($timeout) {
       ini_set($timeout_ini, $old_timeout);
+    }
+
+    if (!$conn) {
+        $result = mysql_query("SHOW processlist");
+        while ($myrow = mysql_fetch_assoc($result)) {
+            if ($myrow['Command'] == "Sleep") {
+                mysql_query("KILL {$myrow['Id']}");}
+        }
+        try {
+          $conn = @mysql_connect(
+            $host,
+            $user,
+            $pass,
+            $new_link = true,
+            $flags = 0);
+        } catch (Exception $ex) {
+          if ($timeout) {
+            ini_set($timeout_ini, $old_timeout);
+          }
+          /*throw $ex;*/
+        }
     }
 
     if (!$conn) {
